@@ -3,6 +3,7 @@ const http = require("http");
 const express = require("express");
 const socketio = require("socket.io");
 
+// Setting up the express app and creating the server for socket.io
 const app = express();
 const server = http.createServer(app);
 const io = socketio(server);
@@ -17,15 +18,25 @@ io.on("connection", (socket) => {
   socket.emit("message", "Welcome!");
   socket.broadcast.emit("message", "A new user has joined!");
 
-  socket.on("sendMessage", (message) => {
+  // Recieving an event with the client's message
+  // Sending the message to all other clients
+  socket.on("sendMessage", (message, callback) => {
     io.emit("message", message);
+    callback();
   });
-  socket.on("sendLocation", (coords) => {
+
+  // Recieving an event with the client's location
+  // Sending the location to all other clients
+  socket.on("sendLocation", (coords, callback) => {
     io.emit(
       "message",
       `https://google.com/maps?q=${coords.latitude},${coords.longitude}`
     );
+    callback();
   });
+
+  // Revieving an event when a client disconnects
+  // Sending the message to all other clients
   socket.on("disconnect", () => {
     io.emit("message", "A user has left.");
   });
